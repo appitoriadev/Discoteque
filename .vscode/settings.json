@@ -1,4 +1,0 @@
-{
-    "dotnet.defaultSolution": "Discoteque.sln",
-    "dotnet-test-explorer.testProjectPath": "**/*Tests.@(csproj|vbproj|fsproj)"
-}

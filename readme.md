@@ -1,6 +1,5 @@
 # Discoteque
 
-
 ## Syllabus del bootcamp
 
 ### .Net Backend Bootcamp

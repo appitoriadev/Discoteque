@@ -1,8 +1,8 @@
 # Dotnet Bootcamp Women Who Code 2023: The discoteque
 
-https://learn.microsoft.com/en-us/aspnet/core/tutorials/first-web-api?view=aspnetcore-7.0&tabs=visual-studio
+[DotNet VERSION](https://learn.microsoft.com/en-us/aspnet/core/tutorials/first-web-api?view=aspnetcore-7.0&tabs=visual-studio)
 
-# Default commands
+## Default commands
 
 ```shell
 # bash terminal
@@ -12,11 +12,11 @@ root@home: git push
 root@home: git push set-upstream origin main
 ```
 
-# Correct COnfiguration of the project
+## Correct COnfiguration of the project
 
 First we are going to delete everything but the `.git` folder and the `.gitignore`
 
-# Setup Debugging
+## Setup Debugging
 
 ```shell
 # bash terminal
@@ -58,9 +58,9 @@ root@home: cd Discoteque.Data/
 root@home: dotnet add package Microsoft.EntityFrameworkCore.InMemory
 ```
 
-On the debug tab on vs CODE, whilst you have the SLN open click on create a debug file. It will create a `launch.json` and a `tasks.json` 
+On the debug tab on vs CODE, whilst you have the SLN open click on create a debug file. It will create a `launch.json` and a `tasks.json`
 
-# Code instructions
+## Code instructions
 
 - Create a folder called Models in Discoteque.Data
 - Add a baseEntity, Artist and Album Model
@@ -157,7 +157,7 @@ builder.Services.AddDbContext<DiscotequeContext>(
 
 ```
 
-# Scaffold a Basic Controller
+## Scaffold a Basic Controller
 
 ```shell
 # bash Terminal
@@ -178,7 +178,7 @@ root@home: cd Discoteque.Api/
 root@home: dotnet-aspnet-codegenerator  Controllers -name ArtistsController -async -api  -outDir Controller --noViews
 ```
 
-# Create a Business Layer Service
+## Create a Business Layer Service
 
 - Create a IService Folder in Data.Business
 - Create Service folder in Data.Business
@@ -234,7 +234,7 @@ public class ArtistsService : IArtistsService
 
 ```
 
-# Update the Controller to comunicate with the Business Layer
+## Update the Controller to comunicate with the Business Layer
 
 ```csharp
 
@@ -273,7 +273,7 @@ builder.Services.AddScoped<IArtistsService, ArtistsService>();
 
 At this point if set a break point into the newly created controller, we can see our app working with debugging correctly functioning in VS Code.
 
-# Creating the Unit of Work
+## Creating the Unit of Work
 
 - Create a Repository interface and its respective class in the root of Discoteque.Data
 

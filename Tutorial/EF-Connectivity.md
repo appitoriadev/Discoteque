@@ -4,36 +4,6 @@
 
 This instruction manual will outline the steps to create a Entity Framework on a live PostgresDatabase. The steps are equally exchangable to a SQL Server Database.
 
-## Supabase Setup
-
-Supabase is a Postgres online database. It is free on its first tier and can be used to develop small projects and learn how to use it.
-
-![Pagina inicial Supabase](Discoteque.media/supabase_1.png)
-
-- In this case we need to login into supabase with either the github login or a Single Sign On (be it google or something else)
-
-![Single Sign On](Discoteque.media/supabase_2.png)
-
-![Single Sign On](Discoteque.media/supabase_3.png)
-
-- In the next page we will the main page for the Supabase, in the center there is a Create project button, this is our next stop.
-
-![Single Sign On](Discoteque.media/supabase_4.png)
-
-![Single Sign On](Discoteque.media/supabase_5.png)
-
-![Single Sign On](Discoteque.media/supabase_6.png)
-
-- In this page we will receive the name of the project, the database password and the pricing, we will use Free/0 since our project purpose is entirely academic.
-
-- Once created the new project, we will receive the API keys, (which are the public keys) the service role (which must be kept secret) the URL of the Project and the JWT token Secret.
-
-![Single Sign On](Discoteque.media/supabase_7.png)
-
-Following the creation will be the screen where we will work.
-
-![Single Sign On](Discoteque.media/supabase_8.png)
-
 ## Setting up the EF Project
 
 - First things first we need to find the PostgreSQL Connection String. SupaBase does have a lot of tooling to make things work. but in this project we will learn how to use our UnitofWork, we can use of course the Supabase Tooling instead of our Linq DbContext as well.
@@ -66,7 +36,7 @@ dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
 
 - Remember that these changes MUST NOT be uploaded to the server so always stash them or make them a server variable.
 
-- In the `program.cs` we do the following change to the data connection
+- In the `Program.cs` we do the following change to the data connection
 
 ```csharp
 builder.Services.AddDbContext<DiscotequeContext>(
@@ -120,4 +90,34 @@ public DiscotequeContext(
     }
 ```
 
-- Once done, you need to comment the PopulateDb in the Program.cs
+- Once done, you need to comment the PopulateDb in the `Program.cs`
+
+## Supabase Setup
+
+Supabase is a Postgres online database. It is free on its first tier and can be used to develop small projects and learn how to use it.
+
+![Pagina inicial Supabase](Discoteque.media/supabase_1.png)
+
+- In this case we need to login into supabase with either the github login or a Single Sign On (be it google or something else)
+
+![Single Sign On](Discoteque.media/supabase_2.png)
+
+![Single Sign On](Discoteque.media/supabase_3.png)
+
+- In the next page we will the main page for the Supabase, in the center there is a Create project button, this is our next stop.
+
+![Single Sign On](Discoteque.media/supabase_4.png)
+
+![Single Sign On](Discoteque.media/supabase_5.png)
+
+![Single Sign On](Discoteque.media/supabase_6.png)
+
+- In this page we will receive the name of the project, the database password and the pricing, we will use Free/0 since our project purpose is entirely academic.
+
+- Once created the new project, we will receive the API keys, (which are the public keys) the service role (which must be kept secret) the URL of the Project and the JWT token Secret.
+
+![Single Sign On](Discoteque.media/supabase_7.png)
+
+Following the creation will be the screen where we will work.
+
+![Single Sign On](Discoteque.media/supabase_8.png)

@@ -27,7 +27,7 @@ builder.Services.AddScoped<ISongService, SongService>();
 builder.Services.AddScoped<ITourService, TourService>();
 
 var app = builder.Build();
-// PopulateDb(app);
+PopulateDb(app);
 
 
 // Configure the HTTP request pipeline.
@@ -45,6 +45,24 @@ app.MapControllers();
 
 app.Run();
 
+
+/*
+docker run --env=POSTGRES_USER=discotequeUsr --env=POSTGRES_PASSWORD=localDk --env=POSTGRES_DB=discoteque -p 5432:5432 -d postgres
+docker run --env=POSTGRES_PASSWORD=localDk --env=POSTGRES_DB=discoteque -p 5432:5432 -d postgres
+
+dotnet ef database update --project Discoteque.Data --startup-project Discoteque.API
+
+docker run --name postgres-container -e POSTGRES_USER=discotequeUsr -e POSTGRES_PASSWORD=localDk -e POSTGRES_DB=discoteque -p 5432:5432 -d postgres
+
+docker ps
+docker stop <CONTAINER_ID>
+docker rm <CONTAINER_ID>
+docker volume rm pgdata
+docker volume create pgdata
+docker run --name postgres-container -e POSTGRES_USER=discotequeUsr -e POSTGRES_PASSWORD=localDk -e POSTGRES_DB=discoteque -v pgdata:/var/lib/postgresql/data -p 5432:5432 -d postgres
+
+
+*/
 
 #region  DB Population
 /// <summary>

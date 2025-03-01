@@ -7,7 +7,7 @@ namespace Discoteque.Data;
 public class DiscotequeContext : DbContext
 {
     public DiscotequeContext(
-        DbContextOptions<DiscotequeContext> options) 
+        DbContextOptions<DiscotequeContext> options)
         : base(options)
     {
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -15,12 +15,19 @@ public class DiscotequeContext : DbContext
 
     public DbSet<Artist> Artists { get; set; }
     public DbSet<Album> Albums { get; set; }
-    public DbSet<Song> Songs{ get; set; }
-    public DbSet<Tour> Tours{ get; set; }
+    public DbSet<Song> Songs { get; set; }
+    public DbSet<Tour> Tours { get; set; }
 
+    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    // {
+    //     if (!optionsBuilder.IsConfigured)
+    //     {
+    //         optionsBuilder.UseSqlServer("YourConnectionStringHere");
+    //     }
+    // }
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        if(builder == null)
+        if (builder == null)
         {
             return;
         }

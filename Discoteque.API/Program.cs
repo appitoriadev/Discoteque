@@ -27,7 +27,7 @@ builder.Services.AddScoped<ISongService, SongService>();
 builder.Services.AddScoped<ITourService, TourService>();
 
 var app = builder.Build();
-PopulateDb(app);
+//await PopulateDb(app);
 
 
 // Configure the HTTP request pipeline.
@@ -59,7 +59,7 @@ docker stop <CONTAINER_ID>
 docker rm <CONTAINER_ID>
 docker volume rm pgdata
 docker volume create pgdata
-docker run --name postgres-container -e POSTGRES_USER=discotequeUsr -e POSTGRES_PASSWORD=localDk -e POSTGRES_DB=discoteque -v pgdata:/var/lib/postgresql/data -p 5432:5432 -d postgres
+docker run --name db -e POSTGRES_USER=discotequeUsr -e POSTGRES_PASSWORD=localDk -e POSTGRES_DB=discoteque -p 5432:5432 -d postgres
 
 
 */
@@ -69,7 +69,7 @@ docker run --name postgres-container -e POSTGRES_USER=discotequeUsr -e POSTGRES_
 /// Populate teh Database with some data.
 /// </summary>
 /// <param name="app"></param>
-async void PopulateDb(WebApplication app)
+async Task PopulateDb(WebApplication app)
 {
     using (var scope = app.Services.CreateScope())
     {

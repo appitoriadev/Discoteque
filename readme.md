@@ -1,37 +1,37 @@
 # Dotnet: The discoteque
 
-## .Net Installs
+## Instalaciones de .Net
 
-In this repo you will be able to follow a tutorial on how to create a .Net app, conteinerize it and dockerize it.
-First we'll need to do some installing and some validations in order to correctly configure our environments.
+En este repositorio podrás seguir un tutorial sobre cómo crear una aplicación .Net, contenerizarla y dockerizarla.
+Primero necesitaremos realizar algunas instalaciones y validaciones para configurar correctamente nuestros entornos.
 
-First You'll need to download and install .Net most recent version:
+Primero necesitarás descargar e instalar la versión más reciente de .Net:
 
 [.Net Current Release](https://dotnet.microsoft.com/en-us/download)
 
-Then you can verify the version installed with:
+Luego puedes verificar la versión instalada con:
 
 ```bash
 # bash terminal
 dotnet --version
 ```
 
-## Docker Installs
+## Instalaciones de Docker
 
-Review the following link to download and install docker on your computer:
+Revisa el siguiente enlace para descargar e instalar Docker en tu computadora:
 
 [Docker Desktop](https://www.docker.com/)
 
-Then you can verify the version installed with:
+Luego puedes verificar la versión instalada con:
 
 ```bash
 # bash terminal
 docker --version
 ```
 
-## Vscode Extensions
+## Extensiones de VSCode
 
-Once you have both programs installed you should look into vscode to add some needed extensions:
+Una vez que tengas ambos programas instalados, deberías buscar en VSCode para agregar algunas extensiones necesarias:
 
 1. [.Net Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.vscode-dotnet-pack)
 2. [.NET Install Tool](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.vscode-dotnet-runtime)
@@ -40,10 +40,10 @@ Once you have both programs installed you should look into vscode to add some ne
 5. [C#](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)
 6. [Docker](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)
 
-**Congratulations!** You've successfully configured your work environment. Now You can start with the tutorial we've preppared for you!
+**¡Felicitaciones!** Has configurado exitosamente tu entorno de trabajo. ¡Ahora puedes comenzar con el tutorial que hemos preparado para ti!
 
-[Go to API creation...](Tutorial/CreateAPI.md)
+[Ir a la creación de API...](Tutorial/CreateAPI.md)
 
-[Go to Connectivity...](Tutorial/EF-Connectivity.md)
+[Ir a Conectividad...](Tutorial/EF-Connectivity.md)
 
-[Go to Dockerization...](Tutorial/Docker.md)
+[Ir a Dockerización...](Tutorial/Docker.md)

@@ -1,24 +1,28 @@
-# Connect entity Framework to live Database in Supabase
+# Conectar Entity Framework a una Base de Datos en vivo en Supabase
 
-## Abstract
+## Resumen
 
-This instruction manual will outline the steps to create a Entity Framework on a live PostgresDatabase. The steps are equally exchangable to a SQL Server Database.
+Este manual te guiará en la implementación de Entity Framework Core con una base de datos PostgreSQL alojada en Supabase. Aunque el enfoque está en PostgreSQL, los conceptos son aplicables a SQL Server u otros motores de base de datos relacionales.
 
-## Setting up the EF Project
+## Configuración del Proyecto EF
 
-- First things first we need to find the PostgreSQL Connection String. SupaBase does have a lot of tooling to make things work. but in this project we will learn how to use our UnitofWork, we can use of course the Supabase Tooling instead of our Linq DbContext as well.
+La integración con Supabase requiere dos componentes principales:
 
-- We need to install the following library so we can actually connect to the PGSQL. in both the Data and the API
+1. **Configuración de la conexión**: Aunque Supabase ofrece un SDK completo con múltiples funcionalidades, en este proyecto utilizaremos Entity Framework Core directamente para demostrar el patrón Unit of Work y tener mayor control sobre nuestras operaciones de datos.
+
+2. **Instalación de dependencias**: Necesitamos el proveedor de PostgreSQL para Entity Framework Core. Ejecuta estos comandos en ambos proyectos (API y Data):
 
 ```bash
 dotnet tool install --global dotnet-ef
 cd Discoteque.API/
 dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL 
-cd Discoteque.Data
+cd ../Discoteque.Data
 dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL 
 ```
 
-- Then we will add the Connection String to our development Json file `appsettings.Development.json`
+### Configuración de la Cadena de Conexión
+
+Agrega la siguiente configuración en `appsettings.Development.json`:
 
 ```json
 {
@@ -34,9 +38,11 @@ dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
 }
 ```
 
-- Remember that these changes MUST NOT be uploaded to the server so always stash them or make them a server variable.
+> ⚠️ **Importante**: Por seguridad, nunca subas credenciales al control de versiones. Utiliza variables de entorno o servicios de configuración seguros en producción.
 
-- In the `Program.cs` we do the following change to the data connection
+### Configuración del DbContext
+
+Actualiza el `Program.cs` para utilizar PostgreSQL:
 
 ```csharp
 builder.Services.AddDbContext<DiscotequeContext>(
@@ -46,40 +52,42 @@ builder.Services.AddDbContext<DiscotequeContext>(
 );
 ```
 
-- You need to replace the values with the ones provided by Supabase:
-  - Host is the key as an URL.
-  - Username is usually postgres
-  - the post is usually 5432
-  - The database is the one you inputted when you created the database proper.
-  - Finally the database is the name you gave to your databse, in this case, mine is called Discoteque.
+### Parámetros de Conexión Supabase
 
-- We then create the first migration for the Database. This is done in the Command console.
-- While being in the API project execute the following.
+Los valores necesarios para la cadena de conexión son:
+- **Host**: URL del servidor Supabase
+- **Username**: Normalmente "postgres"
+- **Puerto**: 5432 por defecto
+- **Database**: Nombre de tu base de datos en Supabase
 
-```bash
-dotnet dotnet ef migrations add InitialCreate --project ../Discoteque.Data
-```
+### Migraciones y Actualización de Base de Datos
 
-- Before we do the next part, we need to make sure to be using the development environment, if not it will fail.
-- First let check wht your ASPNETCORE_ENvironment variable has
+1. Crea la migración inicial desde el directorio del proyecto API:
 
 ```bash
-echo $ASPNETCORE_ENVIRONMENT
+dotnet ef migrations add InitialCreate --project ../Discoteque.Data
 ```
 
-- If you’re using PowerShell in Windows, `execute $Env:ASPNETCORE_ENVIRONMENT = "Development"`
+2. Configura el entorno de desarrollo:
 
-- If you’re using Mac/Linux, execute `export ASPNETCORE_ENVIRONMENT=Development`
+Para Windows (PowerShell):
+```bash
+$Env:ASPNETCORE_ENVIRONMENT = "Development"
+```
 
+Para Mac/Linux:
+```bash
+export ASPNETCORE_ENVIRONMENT=Development
+```
+
+3. Aplica la migración:
 ```bash
 dotnet ef database update
 ```
 
-- Once you are done you should have the following in your Supabase DB
+### Configuración Adicional del DbContext
 
-![Single Sign On](Discoteque.media/supabase_9.png)
-
-- We will repurpose a single method for populating the database. We can do this as SQL Script or using the populateDB method, first we need to update our DBContect constructor
+Para evitar problemas con el manejo de fechas en PostgreSQL, actualiza el constructor del DbContext:
 
 ```csharp
 public DiscotequeContext(
@@ -90,34 +98,24 @@ public DiscotequeContext(
     }
 ```
 
-- Once done, you need to comment the PopulateDb in the `Program.cs`
+## Configuración de Supabase
 
-## Supabase Setup
+Supabase es una plataforma que ofrece una base de datos PostgreSQL gestionada, con características adicionales como autenticación y APIs automáticas. Su nivel gratuito es ideal para desarrollo y aprendizaje.
 
-Supabase is a Postgres online database. It is free on its first tier and can be used to develop small projects and learn how to use it.
+### Proceso de Configuración
 
-![Pagina inicial Supabase](Discoteque.media/supabase_1.png)
+1. **Acceso**: Inicia sesión en Supabase usando GitHub o SSO (Google u otros proveedores).
 
-- In this case we need to login into supabase with either the github login or a Single Sign On (be it google or something else)
+2. **Creación del Proyecto**: 
+   - Desde el dashboard principal, selecciona "Crear nuevo proyecto"
+   - Configura el nombre y la contraseña de la base de datos
+   - Selecciona el plan gratuito para desarrollo
 
-![Single Sign On](Discoteque.media/supabase_2.png)
+3. **Credenciales del Proyecto**:
+   Después de la creación, guardarás de forma segura:
+   - Claves API (públicas)
+   - Rol de servicio (privado)
+   - URL del proyecto
+   - Secreto del token JWT
 
-![Single Sign On](Discoteque.media/supabase_3.png)
-
-- In the next page we will the main page for the Supabase, in the center there is a Create project button, this is our next stop.
-
-![Single Sign On](Discoteque.media/supabase_4.png)
-
-![Single Sign On](Discoteque.media/supabase_5.png)
-
-![Single Sign On](Discoteque.media/supabase_6.png)
-
-- In this page we will receive the name of the project, the database password and the pricing, we will use Free/0 since our project purpose is entirely academic.
-
-- Once created the new project, we will receive the API keys, (which are the public keys) the service role (which must be kept secret) the URL of the Project and the JWT token Secret.
-
-![Single Sign On](Discoteque.media/supabase_7.png)
-
-Following the creation will be the screen where we will work.
-
-![Single Sign On](Discoteque.media/supabase_8.png)
+> 🔒 **Seguridad**: Mantén las credenciales de servicio y tokens JWT en un lugar seguro y nunca las expongas en el código fuente.

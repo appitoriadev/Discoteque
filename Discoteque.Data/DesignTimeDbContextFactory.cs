@@ -7,7 +7,10 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<Discoteque
     public DiscotequeContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<DiscotequeContext>();
-        optionsBuilder.UseNpgsql("Host=localhost;Database=discoteque;Username=discotequeUsr;Password=localDk");
+        var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DiscotequeDatabase") 
+            ?? "Host=localhost;Database=discoteque;Username=discotequeUsr;Password=localDk";
+            
+        optionsBuilder.UseNpgsql(connectionString);
 
         return new DiscotequeContext(optionsBuilder.Options);
     }

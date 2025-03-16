@@ -1,16 +1,21 @@
-# Conectar Entity Framework a una Base de Datos en vivo en Supabase
+# Conectar Entity Framework a una Base de Datos en vivo
 
 ## Resumen
 
-Este manual te guiará en la implementación de Entity Framework Core con una base de datos PostgreSQL alojada en Supabase. Aunque el enfoque está en PostgreSQL, los conceptos son aplicables a SQL Server u otros motores de base de datos relacionales.
+Este manual te guiará en la implementación de Entity Framework Core con una base de datos PostgreSQL. Aunque el enfoque principal está en Supabase, también se incluyen alternativas como PostgreSQL local o en Docker.
+
+## Estructura del Proyecto
+
+El proyecto está organizado en las siguientes capas:
+- **Discoteque.API**: Capa de presentación y controladores
+- **Discoteque.Data**: Capa de acceso a datos con Entity Framework
+- **Discoteque.Business**: Capa de lógica de negocio
 
 ## Configuración del Proyecto EF
 
-La integración con Supabase requiere dos componentes principales:
+### 1. Instalación de Dependencias
 
-1. **Configuración de la conexión**: Aunque Supabase ofrece un SDK completo con múltiples funcionalidades, en este proyecto utilizaremos Entity Framework Core directamente para demostrar el patrón Unit of Work y tener mayor control sobre nuestras operaciones de datos.
-
-2. **Instalación de dependencias**: Necesitamos el proveedor de PostgreSQL para Entity Framework Core. Ejecuta estos comandos en ambos proyectos (API y Data):
+Ejecuta estos comandos en ambos proyectos (API y Data):
 
 ```bash
 dotnet tool install --global dotnet-ef
@@ -20,7 +25,9 @@ cd ../Discoteque.Data
 dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL 
 ```
 
-### Configuración de la Cadena de Conexión
+### 2. Configuración de la Cadena de Conexión
+
+#### Opción A: Usando Supabase
 
 Agrega la siguiente configuración en `appsettings.Development.json`:
 
@@ -38,11 +45,41 @@ Agrega la siguiente configuración en `appsettings.Development.json`:
 }
 ```
 
-> ⚠️ **Importante**: Por seguridad, nunca subas credenciales al control de versiones. Utiliza variables de entorno o servicios de configuración seguros en producción.
+#### Opción B: Usando Docker (Recomendado para desarrollo local)
 
-### Configuración del DbContext
+1. Asegúrate de tener Docker instalado
+2. Usa el `docker-compose.yml` proporcionado:
+```bash
+docker-compose up -d
+```
 
-Actualiza el `Program.cs` para utilizar PostgreSQL:
+3. La cadena de conexión para Docker sería:
+```json
+{
+  "ConnectionStrings": {
+    "DiscotequeDatabase": "Host=localhost;Username=postgres;Password=postgres;Database=discoteque;Port=5432"
+  }
+}
+```
+
+### 3. Configuración del DbContext
+
+El proyecto implementa el patrón Unit of Work y Repository. El `DiscotequeContext` ya está configurado:
+
+```csharp
+public class DiscotequeContext : DbContext
+{
+    public DiscotequeContext(DbContextOptions<DiscotequeContext> options) : base(options)
+    {
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+    }
+
+    // Tus DbSet aquí
+    // public DbSet<TuEntidad> TuEntidad { get; set; }
+}
+```
+
+### 4. Configuración en Program.cs
 
 ```csharp
 builder.Services.AddDbContext<DiscotequeContext>(
@@ -52,23 +89,50 @@ builder.Services.AddDbContext<DiscotequeContext>(
 );
 ```
 
-### Parámetros de Conexión Supabase
+### 5. Variables de Entorno y Secrets
 
-Los valores necesarios para la cadena de conexión son:
-- **Host**: URL del servidor Supabase
-- **Username**: Normalmente "postgres"
-- **Puerto**: 5432 por defecto
-- **Database**: Nombre de tu base de datos en Supabase
-
-### Migraciones y Actualización de Base de Datos
-
-1. Crea la migración inicial desde el directorio del proyecto API:
+Para desarrollo local, usa user-secrets:
 
 ```bash
+cd Discoteque.API
+dotnet user-secrets init
+dotnet user-secrets set "ConnectionStrings:DiscotequeDatabase" "tu-cadena-de-conexion"
+```
+
+## Patrón Repository y Unit of Work
+
+El proyecto ya implementa estos patrones. Para usarlos:
+
+```csharp
+public class TuController : ControllerBase
+{
+    private readonly IUnitOfWork _unitOfWork;
+
+    public TuController(IUnitOfWork unitOfWork)
+    {
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<IActionResult> TuAccion()
+    {
+        var repositorio = _unitOfWork.GetRepository<TuEntidad>();
+        // Usar el repositorio
+        await _unitOfWork.SaveChangesAsync();
+        return Ok();
+    }
+}
+```
+
+## Migraciones y Actualización de Base de Datos
+
+1. Crea la migración inicial:
+
+```bash
+cd Discoteque.API
 dotnet ef migrations add InitialCreate --project ../Discoteque.Data
 ```
 
-2. Configura el entorno de desarrollo:
+2. Configura el entorno:
 
 Para Windows (PowerShell):
 ```bash
@@ -85,37 +149,60 @@ export ASPNETCORE_ENVIRONMENT=Development
 dotnet ef database update
 ```
 
-### Configuración Adicional del DbContext
+## Verificación de la Conexión
 
-Para evitar problemas con el manejo de fechas en PostgreSQL, actualiza el constructor del DbContext:
+Para verificar que la conexión funciona, puedes agregar este código temporal en tu `Program.cs`:
 
 ```csharp
-public DiscotequeContext(
-        DbContextOptions<DiscotequeContext> options) 
-        : base(options)
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<DiscotequeContext>();
+    try
     {
-        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+        await context.Database.CanConnectAsync();
+        Console.WriteLine("Conexión exitosa a la base de datos");
     }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error de conexión: {ex.Message}");
+    }
+}
 ```
 
-## Configuración de Supabase
+## Configuración de Supabase (Opcional)
 
-Supabase es una plataforma que ofrece una base de datos PostgreSQL gestionada, con características adicionales como autenticación y APIs automáticas. Su nivel gratuito es ideal para desarrollo y aprendizaje.
+Si decides usar Supabase:
 
-### Proceso de Configuración
-
-1. **Acceso**: Inicia sesión en Supabase usando GitHub o SSO (Google u otros proveedores).
-
+1. **Acceso**: Inicia sesión en Supabase usando GitHub o SSO
 2. **Creación del Proyecto**: 
-   - Desde el dashboard principal, selecciona "Crear nuevo proyecto"
-   - Configura el nombre y la contraseña de la base de datos
-   - Selecciona el plan gratuito para desarrollo
+   - Crea un nuevo proyecto
+   - Configura nombre y contraseña
+   - Selecciona el plan gratuito
 
-3. **Credenciales del Proyecto**:
-   Después de la creación, guardarás de forma segura:
+3. **Credenciales**:
+   Guarda de forma segura:
    - Claves API (públicas)
    - Rol de servicio (privado)
    - URL del proyecto
    - Secreto del token JWT
 
-> 🔒 **Seguridad**: Mantén las credenciales de servicio y tokens JWT en un lugar seguro y nunca las expongas en el código fuente.
+> 🔒 **Seguridad**: 
+> - Nunca subas credenciales al control de versiones
+> - Usa variables de entorno o user-secrets en desarrollo
+> - En producción, usa servicios de configuración seguros
+
+## Solución de Problemas Comunes
+
+1. **Error de conexión**:
+   - Verifica que el servidor esté accesible
+   - Confirma las credenciales
+   - Asegúrate que el firewall permite la conexión
+
+2. **Problemas con migraciones**:
+   - Elimina la carpeta Migrations si es necesario
+   - Ejecuta `dotnet ef database drop --force`
+   - Vuelve a crear las migraciones
+
+3. **Errores de timestamp**:
+   - El DbContext ya incluye la configuración necesaria para PostgreSQL
+   - Si persisten problemas, verifica la zona horaria del servidor

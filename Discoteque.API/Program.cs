@@ -27,8 +27,29 @@ builder.Services.AddScoped<ISongService, SongService>();
 builder.Services.AddScoped<ITourService, TourService>();
 
 var app = builder.Build();
-//await PopulateDb(app);
 
+// Ensure database creation and apply migrations
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<DiscotequeContext>();
+    try 
+    {
+        context.Database.EnsureCreated();
+        if (context.Database.GetPendingMigrations().Any())
+        {
+            context.Database.Migrate();
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+        throw;
+    }
+}
+
+// Populate database with initial data
+await PopulateDb(app);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

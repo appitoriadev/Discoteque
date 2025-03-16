@@ -1,5 +1,42 @@
 # Dotnet: The discoteque
 
+## ¡Bienvenido a tu viaje por .NET y Docker! 🚀
+
+¡Hola futuro desarrollador .NET! 
+
+Estás a punto de embarcarte en una emocionante aventura de aprendizaje donde descubrirás el poder de .NET y Docker. No te preocupes si estos términos te suenan nuevos o intimidantes - todos empezamos desde cero en algún momento.
+
+En este tutorial, aprenderás paso a paso cómo:
+- Crear una API robusta con .NET
+- Manejar bases de datos y operaciones CRUD
+- Trabajar con contenedores usando Docker
+- Implementar pruebas para asegurar la calidad de tu código
+
+Recuerda: el aprendizaje es un proceso, y está bien cometer errores. ¡Cada error es una oportunidad para aprender algo nuevo!
+
+## Preparando tu Espacio de Trabajo: Fork del Repositorio
+
+Antes de comenzar, necesitarás crear tu propia copia del repositorio. Esto se hace mediante un "fork". Aquí te explicamos cómo:
+
+1. En la parte superior derecha de la página del repositorio en GitHub, encontrarás el botón "Fork". ¡Haz clic en él!
+
+   ![Ubicación del Fork](./images/fork-button.png "fork button")
+
+
+2. GitHub te preguntará dónde quieres crear el fork. Selecciona tu cuenta de usuario.
+
+3. Espera unos segundos mientras GitHub copia el repositorio a tu cuenta.
+
+4. Una vez completado, tendrás tu propia versión del repositorio en tu cuenta de GitHub.
+
+5. Ahora, clona el repositorio a tu máquina local:
+   ```bash
+   git clone https://github.com/TU-USUARIO/Discoteque.git
+   cd Discoteque
+   ```
+
+¡Listo! Ahora tienes tu propia copia del proyecto y estás listo para comenzar.
+
 ## Instalaciones de .Net
 
 En este repositorio podrás seguir un tutorial sobre cómo crear una aplicación .Net, contenerizarla y dockerizarla.

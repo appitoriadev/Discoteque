@@ -1,286 +1,208 @@
-# 🔌 Conectando Entity Framework Core con PostgreSQL
+# Conectar Entity Framework a una Base de Datos en vivo
 
-## 🎯 Objetivo
+## Resumen
 
-En este tutorial, aprenderás a configurar Entity Framework Core para trabajar con PostgreSQL en tu aplicación .NET. Veremos cómo:
-- Configurar la conexión a la base de datos
-- Crear y aplicar migraciones
-- Implementar el patrón Repository y Unit of Work
-- Manejar la configuración en diferentes entornos
+Este manual te guiará en la implementación de Entity Framework Core con una base de datos PostgreSQL. Aunque el enfoque principal está en Supabase, también se incluyen alternativas como PostgreSQL local o en Docker.
 
-## 📦 Requisitos Previos
+## Estructura del Proyecto
 
-Asegúrate de tener instalado:
-- .NET SDK
-- PostgreSQL (si no usas Docker)
-- Herramienta de EF Core:
-  ```bash
-  dotnet tool install --global dotnet-ef
-  ```
+El proyecto está organizado en las siguientes capas:
+- **Discoteque.API**: Capa de presentación y controladores
+- **Discoteque.Data**: Capa de acceso a datos con Entity Framework
+- **Discoteque.Business**: Capa de lógica de negocio
 
-## 🛠️ Configuración del Proyecto
+## Configuración del Proyecto EF
 
-### 1. Agregar Paquetes NuGet
+### 1. Instalación de Dependencias
 
-En el proyecto `Discoteque.Data`, necesitas agregar los siguientes paquetes:
+Ejecuta estos comandos en ambos proyectos (API y Data):
 
-```xml
-<ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.0" />
-</ItemGroup>
+```bash
+dotnet tool install --global dotnet-ef
+cd Discoteque.API/
+dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL 
+cd ../Discoteque.Data
+dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL 
 ```
 
-### 2. Configurar el DbContext
+### 2. Configuración de la Cadena de Conexión
 
-Crea el archivo `DiscotequeContext.cs` en el proyecto `Discoteque.Data`:
+#### Opción A: Usando Supabase
 
-```csharp
-using Microsoft.EntityFrameworkCore;
-using Discoteque.Data.Models;
-
-namespace Discoteque.Data
-{
-    public class DiscotequeContext : DbContext
-    {
-        public DiscotequeContext(DbContextOptions<DiscotequeContext> options)
-            : base(options)
-        {
-        }
-
-        public DbSet<Artist> Artists { get; set; }
-        public DbSet<Album> Albums { get; set; }
-        public DbSet<Song> Songs { get; set; }
-        public DbSet<Tour> Tours { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-
-            // Configuraciones de entidades
-            modelBuilder.Entity<Artist>()
-                .HasMany(a => a.Albums)
-                .WithOne(alb => alb.Artist)
-                .HasForeignKey(alb => alb.ArtistId);
-
-            modelBuilder.Entity<Album>()
-                .HasMany(a => a.Songs)
-                .WithOne(s => s.Album)
-                .HasForeignKey(s => s.AlbumId);
-        }
-    }
-}
-```
-
-### 3. Configurar el DesignTimeDbContextFactory
-
-Para que las migraciones funcionen correctamente, crea el archivo `DesignTimeDbContextFactory.cs`:
-
-```csharp
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
-
-namespace Discoteque.Data
-{
-    public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<DiscotequeContext>
-    {
-        public DiscotequeContext CreateDbContext(string[] args)
-        {
-            var optionsBuilder = new DbContextOptionsBuilder<DiscotequeContext>();
-            optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=discoteque;Username=tu_usuario;Password=tu_contraseña");
-
-            return new DiscotequeContext(optionsBuilder.Options);
-        }
-    }
-}
-```
-
-## 🔄 Implementando el Patrón Repository y Unit of Work
-
-### 1. Crear la Interfaz IRepository
-
-```csharp
-public interface IRepository<T> where T : class
-{
-    Task<T> GetByIdAsync(int id);
-    Task<IEnumerable<T>> GetAllAsync();
-    Task<T> AddAsync(T entity);
-    Task UpdateAsync(T entity);
-    Task DeleteAsync(T entity);
-}
-```
-
-### 2. Implementar Repository
-
-```csharp
-public class Repository<T> : IRepository<T> where T : class
-{
-    protected readonly DiscotequeContext _context;
-    protected readonly DbSet<T> _dbSet;
-
-    public Repository(DiscotequeContext context)
-    {
-        _context = context;
-        _dbSet = context.Set<T>();
-    }
-
-    public async Task<T> GetByIdAsync(int id)
-    {
-        return await _dbSet.FindAsync(id);
-    }
-
-    public async Task<IEnumerable<T>> GetAllAsync()
-    {
-        return await _dbSet.ToListAsync();
-    }
-
-    public async Task<T> AddAsync(T entity)
-    {
-        await _dbSet.AddAsync(entity);
-        await _context.SaveChangesAsync();
-        return entity;
-    }
-
-    public async Task UpdateAsync(T entity)
-    {
-        _dbSet.Update(entity);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task DeleteAsync(T entity)
-    {
-        _dbSet.Remove(entity);
-        await _context.SaveChangesAsync();
-    }
-}
-```
-
-### 3. Crear la Interfaz IUnitOfWork
-
-```csharp
-public interface IUnitOfWork : IDisposable
-{
-    IRepository<Artist> Artists { get; }
-    IRepository<Album> Albums { get; }
-    IRepository<Song> Songs { get; }
-    IRepository<Tour> Tours { get; }
-    Task<int> SaveChangesAsync();
-}
-```
-
-### 4. Implementar UnitOfWork
-
-```csharp
-public class UnitOfWork : IUnitOfWork
-{
-    private readonly DiscotequeContext _context;
-    private IRepository<Artist> _artists;
-    private IRepository<Album> _albums;
-    private IRepository<Song> _songs;
-    private IRepository<Tour> _tours;
-
-    public UnitOfWork(DiscotequeContext context)
-    {
-        _context = context;
-    }
-
-    public IRepository<Artist> Artists => _artists ??= new Repository<Artist>(_context);
-    public IRepository<Album> Albums => _albums ??= new Repository<Album>(_context);
-    public IRepository<Song> Songs => _songs ??= new Repository<Song>(_context);
-    public IRepository<Tour> Tours => _tours ??= new Repository<Tour>(_context);
-
-    public async Task<int> SaveChangesAsync()
-    {
-        return await _context.SaveChangesAsync();
-    }
-
-    public void Dispose()
-    {
-        _context.Dispose();
-    }
-}
-```
-
-## 🚀 Configuración en Program.cs
-
-```csharp
-// En Program.cs
-builder.Services.AddDbContext<DiscotequeContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DiscotequeDatabase")));
-
-// Registrar UnitOfWork
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-```
-
-## 📝 Configuración en appsettings.json
+Agrega la siguiente configuración en `appsettings.Development.json`:
 
 ```json
 {
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }    
+  },
   "ConnectionStrings": {
-    "DiscotequeDatabase": "Host=localhost;Port=5432;Database=discoteque;Username=tu_usuario;Password=tu_contraseña"
+    "DiscotequeDatabase": "Host=[MYSERVER];Username=[MYUSERNAME];Password=[MYPASSWORD];Database=[MYDATABASE]"
   }
 }
 ```
 
-## 🎮 Creando y Aplicando Migraciones
+#### Opción B: Usando Docker (Recomendado para desarrollo local)
 
+1. Asegúrate de tener Docker instalado
+2. Usa el `docker-compose.yml` proporcionado:
 ```bash
-# Crear una migración
-dotnet ef migrations add InitialCreate --project Discoteque.Data --startup-project Discoteque.API
-
-# Aplicar migraciones
-dotnet ef database update --project Discoteque.Data --startup-project Discoteque.API
+docker-compose up -d
 ```
 
-## 🔒 Seguridad y Configuración
-
-### 1. User Secrets para Desarrollo
-
-```bash
-# Inicializar user secrets
-dotnet user-secrets init --project Discoteque.API
-
-# Agregar cadena de conexión
-dotnet user-secrets set "ConnectionStrings:DiscotequeDatabase" "tu_cadena_de_conexion" --project Discoteque.API
+3. La cadena de conexión para Docker sería:
+```json
+{
+  "ConnectionStrings": {
+    "DiscotequeDatabase": "Host=localhost;Username=postgres;Password=postgres;Database=discoteque;Port=5432"
+  }
+}
 ```
 
-### 2. Variables de Entorno
+### 3. Configuración del DbContext
 
-Para producción, usa variables de entorno:
-
-```bash
-export ConnectionStrings__DiscotequeDatabase="Host=tu_host;Port=5432;Database=discoteque;Username=tu_usuario;Password=tu_contraseña"
-```
-
-## 🧪 Verificando la Conexión
-
-Puedes verificar la conexión agregando este código en `Program.cs`:
+El proyecto implementa el patrón Unit of Work y Repository. El `DiscotequeContext` ya está configurado:
 
 ```csharp
-try
+public class DiscotequeContext : DbContext
 {
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<DiscotequeContext>();
-    await context.Database.EnsureCreatedAsync();
-    Console.WriteLine("✅ Conexión a la base de datos establecida correctamente");
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"❌ Error al conectar con la base de datos: {ex.Message}");
+    public DiscotequeContext(DbContextOptions<DiscotequeContext> options) : base(options)
+    {
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+    }
+
+    // Tus DbSet aquí
+    // public DbSet<TuEntidad> TuEntidad { get; set; }
 }
 ```
 
-## 🎉 ¡Felicitaciones!
+### 4. Configuración en Program.cs
 
-Has configurado exitosamente Entity Framework Core con PostgreSQL en tu aplicación. Ahora puedes:
-- Crear y aplicar migraciones
-- Usar el patrón Repository y Unit of Work
-- Manejar la configuración de manera segura
-- Trabajar con la base de datos de forma eficiente
+```csharp
+builder.Services.AddDbContext<DiscotequeContext>(
+    opt => {
+        opt.UseNpgsql(builder.Configuration.GetConnectionString("DiscotequeDatabase"));
+    }    
+);
+```
 
-### 📚 Recursos Adicionales
+### 5. Variables de Entorno y Secrets
 
-- [Documentación de Entity Framework Core](https://docs.microsoft.com/ef/core/)
-- [Documentación de Npgsql](https://www.npgsql.org/efcore/)
-- [Patrón Repository](https://docs.microsoft.com/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/infrastructure-persistence-layer-implementation-entity-framework-core)
+Para desarrollo local, usa user-secrets:
+
+```bash
+cd Discoteque.API
+dotnet user-secrets init
+dotnet user-secrets set "ConnectionStrings:DiscotequeDatabase" "tu-cadena-de-conexion"
+```
+
+## Patrón Repository y Unit of Work
+
+El proyecto ya implementa estos patrones. Para usarlos:
+
+```csharp
+public class TuController : ControllerBase
+{
+    private readonly IUnitOfWork _unitOfWork;
+
+    public TuController(IUnitOfWork unitOfWork)
+    {
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<IActionResult> TuAccion()
+    {
+        var repositorio = _unitOfWork.GetRepository<TuEntidad>();
+        // Usar el repositorio
+        await _unitOfWork.SaveChangesAsync();
+        return Ok();
+    }
+}
+```
+
+## Migraciones y Actualización de Base de Datos
+
+1. Crea la migración inicial:
+
+```bash
+cd Discoteque.API
+dotnet ef migrations add InitialCreate --project ../Discoteque.Data
+```
+
+2. Configura el entorno:
+
+Para Windows (PowerShell):
+```bash
+$Env:ASPNETCORE_ENVIRONMENT = "Development"
+```
+
+Para Mac/Linux:
+```bash
+export ASPNETCORE_ENVIRONMENT=Development
+```
+
+3. Aplica la migración:
+```bash
+dotnet ef database update
+```
+
+## Verificación de la Conexión
+
+Para verificar que la conexión funciona, puedes agregar este código temporal en tu `Program.cs`:
+
+```csharp
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<DiscotequeContext>();
+    try
+    {
+        await context.Database.CanConnectAsync();
+        Console.WriteLine("Conexión exitosa a la base de datos");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error de conexión: {ex.Message}");
+    }
+}
+```
+
+## Configuración de Supabase (Opcional)
+
+Si decides usar Supabase:
+
+1. **Acceso**: Inicia sesión en Supabase usando GitHub o SSO
+2. **Creación del Proyecto**: 
+   - Crea un nuevo proyecto
+   - Configura nombre y contraseña
+   - Selecciona el plan gratuito
+
+3. **Credenciales**:
+   Guarda de forma segura:
+   - Claves API (públicas)
+   - Rol de servicio (privado)
+   - URL del proyecto
+   - Secreto del token JWT
+
+> 🔒 **Seguridad**: 
+> - Nunca subas credenciales al control de versiones
+> - Usa variables de entorno o user-secrets en desarrollo
+> - En producción, usa servicios de configuración seguros
+
+## Solución de Problemas Comunes
+
+1. **Error de conexión**:
+   - Verifica que el servidor esté accesible
+   - Confirma las credenciales
+   - Asegúrate que el firewall permite la conexión
+
+2. **Problemas con migraciones**:
+   - Elimina la carpeta Migrations si es necesario
+   - Ejecuta `dotnet ef database drop --force`
+   - Vuelve a crear las migraciones
+
+3. **Errores de timestamp**:
+   - El DbContext ya incluye la configuración necesaria para PostgreSQL
+   - Si persisten problemas, verifica la zona horaria del servidor

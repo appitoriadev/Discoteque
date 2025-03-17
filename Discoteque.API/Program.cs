@@ -3,7 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Discoteque.Data;
 using Discoteque.Business.IServices;
 using Discoteque.Business.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using Npgsql;
+using Discoteque.API.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +17,37 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Configure JWT
+var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>();
+builder.Services.AddSingleton(jwtSettings);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key))
+        };
+    });
+
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        });
+});
 
 builder.Services.AddDbContext<DiscotequeContext>(
     opt => {
@@ -60,30 +95,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Use CORS
+app.UseCors("AllowAll");
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
-
-
-/*
-docker run --env=POSTGRES_USER=discotequeUsr --env=POSTGRES_PASSWORD=localDk --env=POSTGRES_DB=discoteque -p 5432:5432 -d postgres
-docker run --env=POSTGRES_PASSWORD=localDk --env=POSTGRES_DB=discoteque -p 5432:5432 -d postgres
-
-dotnet ef database update --project Discoteque.Data --startup-project Discoteque.API
-
-docker run --name postgres-container -e POSTGRES_USER=discotequeUsr -e POSTGRES_PASSWORD=localDk -e POSTGRES_DB=discoteque -p 5432:5432 -d postgres
-
-docker ps
-docker stop <CONTAINER_ID>
-docker rm <CONTAINER_ID>
-docker volume rm pgdata
-docker volume create pgdata
-docker run --name db -e POSTGRES_USER=discotequeUsr -e POSTGRES_PASSWORD=localDk -e POSTGRES_DB=discoteque -p 5432:5432 -d postgres
-
-
-*/
 
 #region  DB Population
 /// <summary>

@@ -1,4 +1,3 @@
-using System;
 using Microsoft.EntityFrameworkCore;
 using Discoteque.Data;
 using Discoteque.Business.IServices;
@@ -6,7 +5,6 @@ using Discoteque.Business.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Npgsql;
 using Discoteque.API.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,8 +17,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Configure JWT
-var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>();
-builder.Services.AddSingleton(jwtSettings);
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+builder.Services.Configure<JwtSettings>(jwtSettings);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -31,9 +29,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtSettings.Issuer,
-            ValidAudience = jwtSettings.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key))
+            ValidIssuer = jwtSettings.GetSection("Issuer").Value ?? throw new InvalidOperationException("JWT Issuer not configured"),
+            ValidAudience = jwtSettings.GetSection("Audience").Value ?? throw new InvalidOperationException("JWT Audience not configured"), 
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.GetSection("Key").Value ?? throw new InvalidOperationException("JWT Key not configured")))
         };
     });
 
@@ -60,6 +58,7 @@ builder.Services.AddScoped<IArtistsService, ArtistsService>();
 builder.Services.AddScoped<IAlbumService, AlbumService>();
 builder.Services.AddScoped<ISongService, SongService>();
 builder.Services.AddScoped<ITourService, TourService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 

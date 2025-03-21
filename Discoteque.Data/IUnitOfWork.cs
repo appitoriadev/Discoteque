@@ -3,11 +3,12 @@ using Discoteque.Data.IRepositories;
 
 namespace Discoteque.Data;
 
-public interface IUnitOfWork
+public interface IUnitOfWork : IDisposable
 {
     IRepository<int, Artist> ArtistRepository{get;}
     IRepository<int, Album> AlbumRepository{get;}
     IRepository<int, Song> SongRepository{get;}
     IRepository<int, Tour> TourRepository{get;}
-    Task SaveAsync();
+    IRepository<int, User> UserRepository { get; }
+    Task<int> SaveAsync();
 }

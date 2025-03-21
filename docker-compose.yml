@@ -11,7 +11,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DiscotequeDatabase=Host=db;Port=5432;Database=discoteque;Username=discotequeUsr;Password=localDk
-      - Jwt__Key=your-super-secret-key-with-minimum-32-characters
+      - Jwt__Key=dOj5mO9xqQK0y17VaHvJaY6JEi9dTsH7K9yL0gVE+7M=
       - Jwt__Issuer=discoteque-api
       - Jwt__Audience=discoteque-client
       - Jwt__DurationInMinutes=60
@@ -47,7 +47,7 @@ services:
       target: build
     environment:
       - ConnectionStrings__DiscotequeDatabase=Host=db;Port=5432;Database=discoteque;Username=discotequeUsr;Password=localDk
-      - Jwt__Key=your-super-secret-key-with-minimum-32-characters
+      - Jwt__Key=dOj5mO9xqQK0y17VaHvJaY6JEi9dTsH7K9yL0gVE+7M=
       - Jwt__Issuer=discoteque-api
       - Jwt__Audience=discoteque-client
       - Jwt__DurationInMinutes=60

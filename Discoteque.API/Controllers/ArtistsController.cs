@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 using Discoteque.Business.IServices;
 using Discoteque.Data.Models;
 using System.Net;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Discoteque.API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ArtistsController : ControllerBase

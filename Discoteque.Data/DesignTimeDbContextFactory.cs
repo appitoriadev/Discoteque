@@ -8,7 +8,7 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<Discoteque
     {
         var optionsBuilder = new DbContextOptionsBuilder<DiscotequeContext>();
         var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DiscotequeDatabase") 
-            ?? "Host=localhost;Database=discoteque;Username=discotequeUsr;Password=localDk";
+            ?? "Host=localhost;Port=5432;Database=discoteque;Username=discotequeUsr;Password=localDk";
             
         optionsBuilder.UseNpgsql(connectionString);
 

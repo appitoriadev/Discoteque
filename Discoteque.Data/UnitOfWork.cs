@@ -13,7 +13,7 @@ public class UnitOfWork : IUnitOfWork, IDisposable
     private IRepository<int, Album> _albumRepository;
     private IRepository<int, Song> _songRepository;
     private IRepository<int, Tour> _tourRepository;
-    private IRepository<int, User> _userRepository;
+    private IRepository<int, User> _usersRepository;
 
     public UnitOfWork(DiscotequeContext context)
     {
@@ -60,22 +60,24 @@ public class UnitOfWork : IUnitOfWork, IDisposable
     {
         get
         {
-            _userRepository ??= new Repository<int, User>(_context);
-            return _userRepository;
+            if (_usersRepository == null)
+            {
+                _usersRepository = new Repository<int, User>(_context);
+            }
+            return _usersRepository;
         }
     }
 
-    public async Task<int> SaveAsync()
+    public async Task SaveAsync()
     {
         try
         {
-            return await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
         }
         catch (DbUpdateConcurrencyException ex)
         {
             ex.Entries.Single().Reload();
         }
-        return await _context.SaveChangesAsync();
     }
     #region IDisposable
         protected virtual void Dispose(bool disposing)

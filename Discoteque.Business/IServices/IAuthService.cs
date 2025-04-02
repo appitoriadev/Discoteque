@@ -1,10 +1,14 @@
-using Discoteque.Data.Dto;
-
+using System.Security.Claims;
+using Discoteque.Data.Models;
 namespace Discoteque.Business.IServices;
 
 public interface IAuthService
 {
-    Task<AuthResponse> LoginAsync(LoginRequest request);
-    Task<AuthResponse> RegisterAsync(RegisterRequest request);
-    string GenerateJwtToken(string username, string role);
+
+    Task<AuthResponse>Register(User user);
+    Task<AuthResponse?>Login(LoginRequest request);
+    Task<AuthResponse?>RefreshToken(string refreshToken);
+    Task<User?> GetUserByUsername(string username);
+    Task<User?> GetUserById(int id);
+    
 } 

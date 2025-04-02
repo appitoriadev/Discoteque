@@ -1,9 +1,11 @@
 using Discoteque.Business.IServices;
 using Discoteque.Data.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Discoteque.API.Controllers;
 
+[Authorize(Roles = "Admin, User")]
 [Route("api/[controller]")]
 [ApiController]
 public class AlbumController : ControllerBase

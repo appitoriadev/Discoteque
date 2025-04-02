@@ -75,7 +75,7 @@ public class SongService : ISongService
 
     public async Task<IEnumerable<Song>> GetSongsByYear(int year)
     {
-        return await _unitOfWork.SongRepository.GetAllAsync(x => x.Album.Year == year, includeProperties: new Album().GetType().Name);
+        return await _unitOfWork.SongRepository.GetAllAsync(x => x.Album!.Year == year, includeProperties: new Album().GetType().Name);
     }
 
     public async Task<Song> UpdateSong(Song song)

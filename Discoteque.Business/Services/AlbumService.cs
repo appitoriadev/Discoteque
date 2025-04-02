@@ -62,7 +62,7 @@ public class AlbumService : IAlbumService
         IEnumerable<Album> albums;
         if(areReferencesLoaded)
         {
-            albums = await _unitOfWork.AlbumRepository.GetAllAsync(null, x => x.OrderBy(x => x.Id), new Artist().GetType().Name);
+            albums = await _unitOfWork.AlbumRepository.GetAllAsync(null!, x => x.OrderBy(x => x.Id), new Artist().GetType().Name);
         }
         else
         {
@@ -81,7 +81,7 @@ public class AlbumService : IAlbumService
     {
         IEnumerable<Album> albums;        
         albums = await _unitOfWork.AlbumRepository.GetAllAsync(
-            x => x.Artist.Name.ToLower().Equals(artist.ToLower()), 
+            x => x.Artist!.Name.ToLower().Equals(artist.ToLower()), 
             x => x.OrderBy(x => x.Id), 
             new Artist().GetType().Name);
         return albums;

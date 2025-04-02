@@ -11,8 +11,8 @@ namespace Discoteque.Data.IRepositories
         Task AddAsync(TEntity entity);
         Task<TEntity> FindAsync(Tid id);
         Task<IEnumerable<TEntity>> GetAllAsync(
-            Expression<Func<TEntity, bool>> filter,
-            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy,
+            Expression<Func<TEntity, bool>> filter = null!,
+            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null!,
             string includeProperties = "");
         Task Update(TEntity entity);
         Task Delete(TEntity entity);

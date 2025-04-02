@@ -10,5 +10,5 @@ public interface IUnitOfWork : IDisposable
     IRepository<int, Song> SongRepository{get;}
     IRepository<int, Tour> TourRepository{get;}
     IRepository<int, User> UserRepository { get; }
-    Task<int> SaveAsync();
+    Task SaveAsync();
 }

@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Discoteque.Data.Models;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 namespace Discoteque.Data;
 
 
@@ -17,14 +16,8 @@ public class DiscotequeContext : DbContext
     public DbSet<Album> Albums { get; set; }
     public DbSet<Song> Songs { get; set; }
     public DbSet<Tour> Tours { get; set; }
+    public DbSet<User> Users { get; set; }
 
-    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    // {
-    //     if (!optionsBuilder.IsConfigured)
-    //     {
-    //         optionsBuilder.UseSqlServer("YourConnectionStringHere");
-    //     }
-    // }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         if (builder == null)
@@ -36,6 +29,13 @@ public class DiscotequeContext : DbContext
         builder.Entity<Album>().ToTable("Album").HasKey(k => k.Id);
         builder.Entity<Song>().ToTable("Song").HasKey(k => k.Id);
         builder.Entity<Tour>().ToTable("Tour").HasKey(k => k.Id);
+        builder.Entity<User>()
+            .HasIndex(u => u.Username)
+            .IsUnique();
+
+        builder.Entity<User>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
         base.OnModelCreating(builder);
     }
 }
